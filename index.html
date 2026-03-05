@@ -74,15 +74,13 @@
                     <label for="hoursPerMeeting">Current Hours Per Meeting (Manual Process)
                         <span class="citation-icon">
                             <span class="citation-tooltip">
-                                <strong>Source: GFOA Research (2021)</strong>
-                                1/3 of gov finance officers cite meetings as top source of wasted time. 65% say meetings prevent completing work.
-                                <a href="https://www.gfoa.org/materials/meetings" target="_blank">View source</a>
+                                Clerks can spend up to 40 hours a week on agenda packets alone (<a href="https://www.govloop.com/how-going-paperless-transforms-the-agenda-meeting-and-approval-process-for-clerks/" target="_blank" rel="noopener">GovLoop</a>); 8–12 hours per meeting is common for manual prep (<a href="https://towncloud.com/agenda-management-software-texas-municipalities/" target="_blank" rel="noopener">TownCloud</a>).
                             </span>
                         </span>
                     </label>
-                    <input type="range" id="hoursPerMeeting" min="10" max="50" value="25" step="1">
-                    <div class="range-value"><span id="hoursPerMeetingValue">25</span> hours</div>
-                    <span class="input-hint">Clerks can spend up to 40 hours a week on agenda packets alone (<a href="https://www.govloop.com/how-going-paperless-transforms-the-agenda-meeting-and-approval-process-for-clerks/" target="_blank" rel="noopener">GovLoop</a>); 8–12 hours per meeting is common for manual prep (<a href="https://towncloud.com/agenda-management-software-texas-municipalities/" target="_blank" rel="noopener">TownCloud</a>).</span>
+                    <input type="range" id="hoursPerMeeting" min="10" max="50" value="10" step="1">
+                    <div class="range-value"><span id="hoursPerMeetingValue">10</span> hours</div>
+                    <span class="input-hint">Industry benchmark: 8–12 hrs per meeting for manual processes.</span>
                 </div>
 
                 <!-- Hourly Rate -->
@@ -124,10 +122,10 @@
                 <!-- ROI % based on time savings (no cost input) -->
                 <div class="roi-section">
                     <div class="roi-label">Your Time ROI</div>
-                    <div class="roi-value"><span id="roiPercent">76</span>%</div>
+                    <div class="roi-value"><span id="roiPercent">50</span>%</div>
                     <p class="roi-caption">Meeting prep time recovered with eScribe</p>
-                    <p class="roi-context" id="roiContext">25 hrs today → ~5–6 hrs with eScribe = 76% of prep time recovered.</p>
-                    <p class="roi-formula">Hours saved per meeting ÷ hours you spend now. Industry benchmark: manual prep often drops from 8–12+ hrs per meeting to ~5–6 with automation.</p>
+                    <p class="roi-context" id="roiContext">10 hrs today → 5 hrs with eScribe = 50% of prep time recovered.</p>
+                    <p class="roi-formula">Hours saved per meeting ÷ hours you spend now. Industry benchmark: manual prep often drops from 8–12+ hrs per meeting to ~5 with automation.</p>
                     <p class="roi-source">Based on eScribe customer outcomes and typical automation savings.</p>
                 </div>
 
@@ -220,19 +218,19 @@
                             <div class="comparison-label">Manual Process</div>
                             <div class="comparison-bar manual">
                                 <div class="bar-fill" id="manualBar" style="width: 100%"></div>
-                                <span class="bar-value" id="manualHours">25 hours</span>
+                                <span class="bar-value" id="manualHours">10 hours</span>
                             </div>
                         </div>
                         <div class="comparison-item">
                             <div class="comparison-label">With eScribe</div>
                             <div class="comparison-bar escribe">
                                 <div class="bar-fill" id="escribeBar" style="width: 20%"></div>
-                                <span class="bar-value" id="escribeHours">~5–6 hours</span>
+                                <span class="bar-value" id="escribeHours">5 hours</span>
                             </div>
                         </div>
                     </div>
                     <div class="comparison-savings">
-                        <span class="savings-percent" id="timeSavingsPercent">76%</span> time reduction per meeting
+                        <span class="savings-percent" id="timeSavingsPercent">50%</span> time reduction per meeting
                     </div>
                 </div>
 
@@ -244,7 +242,7 @@
                             <path d="M5 12h14M12 5l7 7-7 7"/>
                         </svg>
                     </a>
-                    <p class="cta-note">See your exact savings with a custom ROI report</p>
+                    <p class="cta-note">See your time savings put into action</p>
                 </div>
             </section>
 
@@ -354,13 +352,13 @@
 let currentCurrency = 'USD';
 const EXCHANGE_RATE = 1.36;
 const CONFIG = {
-    hoursWithEscribe: 6,
+    hoursWithEscribe: 5,
     costPerPage: 0.07,
     orgSizeDefaults: {
-        small: { committee: 15, council: 15, staff: 2, hours: 20, rate: 35, pages: 100, copies: 10 },
-        medium: { committee: 24, council: 24, staff: 3, hours: 25, rate: 40, pages: 150, copies: 15 },
-        large: { committee: 36, council: 36, staff: 5, hours: 30, rate: 45, pages: 175, copies: 20 },
-        major: { committee: 60, council: 60, staff: 8, hours: 35, rate: 50, pages: 200, copies: 25 }
+        small: { committee: 15, council: 15, staff: 2, hours: 8, rate: 35, pages: 100, copies: 10 },
+        medium: { committee: 24, council: 24, staff: 3, hours: 10, rate: 40, pages: 150, copies: 15 },
+        large: { committee: 36, council: 36, staff: 5, hours: 12, rate: 45, pages: 175, copies: 20 },
+        major: { committee: 60, council: 60, staff: 8, hours: 14, rate: 50, pages: 200, copies: 25 }
     },
     complianceRisk: {
         small: { high: { exposure: 50000, probability: 0.10 }, medium: { exposure: 30000, probability: 0.05 }, low: { exposure: 15000, probability: 0.02 } },
@@ -431,7 +429,7 @@ function updateComplianceDisplay(level) {
 function calculate() {
     const orgSize = elements.orgSize.value;
     const committee = parseInt(elements.committeeMeetings.value) || 0, council = parseInt(elements.councilMeetings.value) || 0, meetings = committee + council || 48;
-    const staff = parseInt(elements.staffCount.value) || 3, hoursManual = parseInt(elements.hoursPerMeeting.value) || 25, hourlyRate = parseFloat(elements.hourlyRate.value) || 40;
+    const staff = parseInt(elements.staffCount.value) || 3, hoursManual = parseInt(elements.hoursPerMeeting.value) || 10, hourlyRate = parseFloat(elements.hourlyRate.value) || 40;
     const pages = parseInt(elements.packetPages.value) || 150, copies = parseInt(elements.printedCopies.value) || 15;
     const hoursWithEscribe = CONFIG.hoursWithEscribe;
     const hoursSavedPerMeeting = hoursManual - hoursWithEscribe, totalHoursSaved = meetings * hoursSavedPerMeeting;
@@ -464,11 +462,11 @@ function calculate() {
     if (elements.manualBar) elements.manualBar.style.width = (hoursManual / maxHours * 100) + '%';
     if (elements.manualHours) elements.manualHours.textContent = hoursManual + ' hours';
     if (elements.escribeBar) elements.escribeBar.style.width = (hoursWithEscribe / maxHours * 100) + '%';
-    if (elements.escribeHours) elements.escribeHours.textContent = '~5–6 hours';
+    if (elements.escribeHours) elements.escribeHours.textContent = '5 hours';
     if (elements.timeSavingsPercent) elements.timeSavingsPercent.textContent = timeSavingsPercent + '%';
     if (elements.avgSettlement) elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
     if (elements.roiPercent) elements.roiPercent.textContent = timeSavingsPercent;
-    if (elements.roiContext) elements.roiContext.textContent = hoursManual + ' hrs today → ~5–6 hrs with eScribe = ' + timeSavingsPercent + '% of prep time recovered.';
+    if (elements.roiContext) elements.roiContext.textContent = hoursManual + ' hrs today → 5 hrs with eScribe = ' + timeSavingsPercent + '% of prep time recovered.';
 }
 function updateDefaults() {
     if (!elements.orgSize) return;
