@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <base href="https://lmarks620.github.io/escriberoicalc/">
     <title>eScribe ROI Calculator | Time & Cost Savings for Government</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=4">
+    <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
     <div class="container">
@@ -347,6 +348,161 @@
         </footer>
     </div>
 
-    <script src="calculator.js"></script>
+    <script>
+// eScribe ROI Calculator - inlined so one file update fixes cache issues
+let currentCurrency = 'USD';
+const EXCHANGE_RATE = 1.36;
+const CONFIG = {
+    hoursWithEscribe: 6,
+    costPerPage: 0.07,
+    orgSizeDefaults: {
+        small: { committee: 15, council: 15, staff: 2, hours: 20, rate: 35, pages: 100, copies: 10 },
+        medium: { committee: 24, council: 24, staff: 3, hours: 25, rate: 40, pages: 150, copies: 15 },
+        large: { committee: 36, council: 36, staff: 5, hours: 30, rate: 45, pages: 175, copies: 20 },
+        major: { committee: 60, council: 60, staff: 8, hours: 35, rate: 50, pages: 200, copies: 25 }
+    },
+    complianceRisk: {
+        small: { high: { exposure: 50000, probability: 0.10 }, medium: { exposure: 30000, probability: 0.05 }, low: { exposure: 15000, probability: 0.02 } },
+        medium: { high: { exposure: 150000, probability: 0.20 }, medium: { exposure: 75000, probability: 0.10 }, low: { exposure: 35000, probability: 0.05 } },
+        large: { high: { exposure: 250000, probability: 0.30 }, medium: { exposure: 125000, probability: 0.15 }, low: { exposure: 50000, probability: 0.07 } },
+        major: { high: { exposure: 400000, probability: 0.40 }, medium: { exposure: 200000, probability: 0.20 }, low: { exposure: 75000, probability: 0.10 } }
+    },
+    escribeRiskReduction: 0.80
+};
+const elements = {
+    orgSize: document.getElementById('orgSize'),
+    committeeMeetings: document.getElementById('committeeMeetings'),
+    councilMeetings: document.getElementById('councilMeetings'),
+    staffCount: document.getElementById('staffCount'),
+    hoursPerMeeting: document.getElementById('hoursPerMeeting'),
+    hoursPerMeetingValue: document.getElementById('hoursPerMeetingValue'),
+    hourlyRate: document.getElementById('hourlyRate'),
+    packetPages: document.getElementById('packetPages'),
+    printedCopies: document.getElementById('printedCopies'),
+    comp1: document.getElementById('comp1'), comp2: document.getElementById('comp2'), comp3: document.getElementById('comp3'), comp4: document.getElementById('comp4'), comp5: document.getElementById('comp5'),
+    complianceScoreBox: document.getElementById('complianceScoreBox'),
+    complianceScore: document.getElementById('complianceScore'),
+    totalHoursSaved: document.getElementById('totalHoursSaved'),
+    totalSavings: document.getElementById('totalSavings'),
+    complianceRisk: document.getElementById('complianceRisk'),
+    laborSavings: document.getElementById('laborSavings'),
+    hoursSavedDetail: document.getElementById('hoursSavedDetail'),
+    hourlyRateDetail: document.getElementById('hourlyRateDetail'),
+    laborProgress: document.getElementById('laborProgress'),
+    printSavings: document.getElementById('printSavings'),
+    meetingsDetail: document.getElementById('meetingsDetail'),
+    pagesDetail: document.getElementById('pagesDetail'),
+    copiesDetail: document.getElementById('copiesDetail'),
+    printProgress: document.getElementById('printProgress'),
+    complianceSavings: document.getElementById('complianceSavings'),
+    complianceProgress: document.getElementById('complianceProgress'),
+    manualBar: document.getElementById('manualBar'),
+    manualHours: document.getElementById('manualHours'),
+    escribeBar: document.getElementById('escribeBar'),
+    escribeHours: document.getElementById('escribeHours'),
+    timeSavingsPercent: document.getElementById('timeSavingsPercent'),
+    riskDetailBox: document.getElementById('riskDetailBox'),
+    riskMessage: document.getElementById('riskMessage'),
+    avgSettlement: document.getElementById('avgSettlement'),
+    roiPercent: document.getElementById('roiPercent'),
+    roiContext: document.getElementById('roiContext')
+};
+function formatNumber(num) { return Math.round(num).toLocaleString('en-US'); }
+function formatCurrency(num) { const c = currentCurrency === 'CAD' ? num * EXCHANGE_RATE : num; return Math.round(c).toLocaleString('en-US'); }
+function updateCurrencyLabels() {
+    const usdBtn = document.getElementById('usdBtn'), cadBtn = document.getElementById('cadBtn');
+    if (usdBtn && cadBtn) { usdBtn.classList.toggle('active', currentCurrency === 'USD'); cadBtn.classList.toggle('active', currentCurrency === 'CAD'); }
+    document.querySelectorAll('.currency-value').forEach(el => { const v = parseFloat(el.dataset.usd); if (!isNaN(v)) el.textContent = '$' + formatCurrency(v); });
+}
+function getComplianceLevel() {
+    const n = [elements.comp1, elements.comp2, elements.comp3, elements.comp4, elements.comp5].filter(c => c && c.checked).length;
+    return n <= 1 ? 'high' : n <= 3 ? 'medium' : 'low';
+}
+function updateComplianceDisplay(level) {
+    const box = elements.complianceScoreBox, score = elements.complianceScore, riskBox = elements.riskDetailBox;
+    box.classList.remove('low-risk', 'medium-risk', 'high-risk'); score.classList.remove('low-risk', 'medium-risk', 'high-risk'); riskBox.classList.remove('low-risk');
+    box.classList.add(level + '-risk'); score.classList.add(level + '-risk');
+    score.textContent = level === 'high' ? 'High Risk' : level === 'medium' ? 'Medium Risk' : 'Low Risk';
+    const messages = { high: 'Without automated compliance tools, your organization faces significant exposure to open meetings and public records lawsuits. eScribe\'s automated notice posting, WCAG-compliant publishing, and record retention protect you from these costly violations.', medium: 'Your organization has some compliance measures in place. eScribe strengthens your protection with automated workflows that ensure consistent compliance with open meetings laws and accessibility requirements.', low: 'You have good compliance practices. eScribe provides an additional layer of protection with automated audit trails, compliant document publishing, and built-in record retention policies.' };
+    elements.riskMessage.textContent = messages[level];
+    if (level === 'low') riskBox.classList.add('low-risk');
+}
+function calculate() {
+    const orgSize = elements.orgSize.value;
+    const committee = parseInt(elements.committeeMeetings.value) || 0, council = parseInt(elements.councilMeetings.value) || 0, meetings = committee + council || 48;
+    const staff = parseInt(elements.staffCount.value) || 3, hoursManual = parseInt(elements.hoursPerMeeting.value) || 25, hourlyRate = parseFloat(elements.hourlyRate.value) || 40;
+    const pages = parseInt(elements.packetPages.value) || 150, copies = parseInt(elements.printedCopies.value) || 15;
+    const hoursWithEscribe = CONFIG.hoursWithEscribe;
+    const hoursSavedPerMeeting = hoursManual - hoursWithEscribe, totalHoursSaved = meetings * hoursSavedPerMeeting;
+    const timeSavingsPercent = Math.round((hoursSavedPerMeeting / hoursManual) * 100);
+    const laborSavings = totalHoursSaved * hourlyRate, printSavings = meetings * pages * copies * CONFIG.costPerPage;
+    const complianceLevel = getComplianceLevel();
+    updateComplianceDisplay(complianceLevel);
+    const riskData = CONFIG.complianceRisk[orgSize][complianceLevel];
+    const currentRiskExposure = riskData.exposure, currentProbability = riskData.probability;
+    const annualRiskCostWithout = (currentRiskExposure * currentProbability) / 5;
+    const reducedExposure = currentRiskExposure * (1 - CONFIG.escribeRiskReduction), reducedProbability = currentProbability * (1 - CONFIG.escribeRiskReduction);
+    const annualRiskCostWith = (reducedExposure * reducedProbability) / 5;
+    const complianceSavings = annualRiskCostWithout - annualRiskCostWith;
+    const totalSavings = laborSavings + printSavings, totalForProgress = laborSavings + printSavings + complianceSavings;
+    if (elements.totalHoursSaved) elements.totalHoursSaved.textContent = formatNumber(totalHoursSaved);
+    if (elements.totalSavings) elements.totalSavings.textContent = formatCurrency(totalSavings);
+    if (elements.complianceRisk) elements.complianceRisk.textContent = formatCurrency(currentRiskExposure);
+    if (elements.laborSavings) elements.laborSavings.textContent = formatCurrency(laborSavings);
+    if (elements.hoursSavedDetail) elements.hoursSavedDetail.textContent = formatNumber(totalHoursSaved);
+    if (elements.hourlyRateDetail) elements.hourlyRateDetail.textContent = formatCurrency(hourlyRate);
+    if (elements.printSavings) elements.printSavings.textContent = formatCurrency(printSavings);
+    if (elements.meetingsDetail) elements.meetingsDetail.textContent = meetings;
+    if (elements.pagesDetail) elements.pagesDetail.textContent = pages;
+    if (elements.copiesDetail) elements.copiesDetail.textContent = copies;
+    if (elements.complianceSavings) elements.complianceSavings.textContent = formatCurrency(complianceSavings);
+    if (elements.laborProgress) elements.laborProgress.style.width = (laborSavings / totalForProgress * 100) + '%';
+    if (elements.printProgress) elements.printProgress.style.width = (printSavings / totalForProgress * 100) + '%';
+    if (elements.complianceProgress) elements.complianceProgress.style.width = (complianceSavings / totalForProgress * 100) + '%';
+    const maxHours = Math.max(hoursManual, 50);
+    if (elements.manualBar) elements.manualBar.style.width = (hoursManual / maxHours * 100) + '%';
+    if (elements.manualHours) elements.manualHours.textContent = hoursManual + ' hours';
+    if (elements.escribeBar) elements.escribeBar.style.width = (hoursWithEscribe / maxHours * 100) + '%';
+    if (elements.escribeHours) elements.escribeHours.textContent = Math.round(hoursWithEscribe) + ' hours';
+    if (elements.timeSavingsPercent) elements.timeSavingsPercent.textContent = timeSavingsPercent + '%';
+    if (elements.avgSettlement) elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
+    if (elements.roiPercent) elements.roiPercent.textContent = timeSavingsPercent;
+    if (elements.roiContext) elements.roiContext.textContent = hoursManual + ' hrs today → ' + hoursWithEscribe + ' hrs with eScribe = ' + timeSavingsPercent + '% of prep time recovered.';
+}
+function updateDefaults() {
+    if (!elements.orgSize) return;
+    const defaults = CONFIG.orgSizeDefaults[elements.orgSize.value];
+    if (!defaults) return;
+    elements.committeeMeetings.value = defaults.committee; elements.councilMeetings.value = defaults.council;
+    elements.staffCount.value = defaults.staff; elements.hoursPerMeeting.value = defaults.hours;
+    elements.hoursPerMeetingValue.textContent = defaults.hours; elements.hourlyRate.value = defaults.rate;
+    elements.packetPages.value = defaults.pages; elements.printedCopies.value = defaults.copies;
+    calculate();
+}
+function attachListeners() {
+    if (elements.orgSize) elements.orgSize.addEventListener('change', updateDefaults);
+    if (elements.committeeMeetings) elements.committeeMeetings.addEventListener('input', calculate);
+    if (elements.councilMeetings) elements.councilMeetings.addEventListener('input', calculate);
+    if (elements.staffCount) elements.staffCount.addEventListener('input', calculate);
+    if (elements.hoursPerMeeting) { elements.hoursPerMeeting.addEventListener('input', function() { elements.hoursPerMeetingValue.textContent = this.value; calculate(); }); }
+    if (elements.hourlyRate) elements.hourlyRate.addEventListener('input', calculate);
+    if (elements.packetPages) elements.packetPages.addEventListener('input', calculate);
+    if (elements.printedCopies) elements.printedCopies.addEventListener('input', calculate);
+    if (elements.comp1) elements.comp1.addEventListener('change', calculate);
+    if (elements.comp2) elements.comp2.addEventListener('change', calculate);
+    if (elements.comp3) elements.comp3.addEventListener('change', calculate);
+    if (elements.comp4) elements.comp4.addEventListener('change', calculate);
+    if (elements.comp5) elements.comp5.addEventListener('change', calculate);
+}
+const usdBtn = document.getElementById('usdBtn'), cadBtn = document.getElementById('cadBtn');
+if (usdBtn && cadBtn) { usdBtn.addEventListener('click', function() { currentCurrency = 'USD'; updateCurrencyLabels(); calculate(); });
+    cadBtn.addEventListener('click', function() { currentCurrency = 'CAD'; updateCurrencyLabels(); calculate(); }); }
+document.addEventListener('DOMContentLoaded', function() {
+    attachListeners();
+    updateDefaults();
+    updateCurrencyLabels();
+    calculate();
+});
+    </script>
 </body>
 </html>
