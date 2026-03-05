@@ -307,7 +307,7 @@ function calculate() {
     elements.manualBar.style.width = `${(hoursManual / maxHours) * 100}%`;
     elements.manualHours.textContent = `${hoursManual} hours`;
     elements.escribeBar.style.width = `${(hoursWithEscribe / maxHours) * 100}%`;
-    elements.escribeHours.textContent = `${Math.round(hoursWithEscribe)} hours`;
+    elements.escribeHours.textContent = '~5–6 hours';
     elements.timeSavingsPercent.textContent = `${timeSavingsPercent}%`;
     
     // Update risk detail
@@ -319,7 +319,7 @@ function calculate() {
     }
     // Show the math so the % feels credible
     if (elements.roiContext) {
-        elements.roiContext.textContent = `${hoursManual} hrs today → ${hoursWithEscribe} hrs with eScribe = ${timeSavingsPercent}% of prep time recovered.`;
+        elements.roiContext.textContent = `${hoursManual} hrs today → ~5–6 hrs with eScribe = ${timeSavingsPercent}% of prep time recovered.`;
     }
 }
 

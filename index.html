@@ -126,7 +126,7 @@
                     <div class="roi-label">Your Time ROI</div>
                     <div class="roi-value"><span id="roiPercent">76</span>%</div>
                     <p class="roi-caption">Meeting prep time recovered with eScribe</p>
-                    <p class="roi-context" id="roiContext">25 hrs today → 6 hrs with eScribe = 76% of prep time recovered.</p>
+                    <p class="roi-context" id="roiContext">25 hrs today → ~5–6 hrs with eScribe = 76% of prep time recovered.</p>
                     <p class="roi-formula">Hours saved per meeting ÷ hours you spend now. Industry benchmark: manual prep often drops from 20–40 hrs to ~5–6 with automation.</p>
                 </div>
 
@@ -226,7 +226,7 @@
                             <div class="comparison-label">With eScribe</div>
                             <div class="comparison-bar escribe">
                                 <div class="bar-fill" id="escribeBar" style="width: 20%"></div>
-                                <span class="bar-value" id="escribeHours">6 hours</span>
+                                <span class="bar-value" id="escribeHours">~5–6 hours</span>
                             </div>
                         </div>
                     </div>
@@ -463,11 +463,11 @@ function calculate() {
     if (elements.manualBar) elements.manualBar.style.width = (hoursManual / maxHours * 100) + '%';
     if (elements.manualHours) elements.manualHours.textContent = hoursManual + ' hours';
     if (elements.escribeBar) elements.escribeBar.style.width = (hoursWithEscribe / maxHours * 100) + '%';
-    if (elements.escribeHours) elements.escribeHours.textContent = Math.round(hoursWithEscribe) + ' hours';
+    if (elements.escribeHours) elements.escribeHours.textContent = '~5–6 hours';
     if (elements.timeSavingsPercent) elements.timeSavingsPercent.textContent = timeSavingsPercent + '%';
     if (elements.avgSettlement) elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
     if (elements.roiPercent) elements.roiPercent.textContent = timeSavingsPercent;
-    if (elements.roiContext) elements.roiContext.textContent = hoursManual + ' hrs today → ' + hoursWithEscribe + ' hrs with eScribe = ' + timeSavingsPercent + '% of prep time recovered.';
+    if (elements.roiContext) elements.roiContext.textContent = hoursManual + ' hrs today → ~5–6 hrs with eScribe = ' + timeSavingsPercent + '% of prep time recovered.';
 }
 function updateDefaults() {
     if (!elements.orgSize) return;
