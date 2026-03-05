@@ -33,8 +33,9 @@
             <p class="subtitle">Discover how much time and money your city can save with automated meeting management</p>
         </header>
 
-        <!-- Main Calculator -->
+        <!-- Main Calculator: 2 columns on top, compliance full width below -->
         <main class="calculator">
+            <div class="calculator-top">
             <!-- Left Column: Your Organization -->
             <section class="input-section col-left">
                 <h2>Your Organization</h2>
@@ -78,7 +79,7 @@
                             </span>
                         </span>
                     </label>
-                    <input type="range" id="hoursPerMeeting" min="10" max="50" value="10" step="1">
+                    <input type="range" id="hoursPerMeeting" min="10" max="30" value="10" step="1">
                     <div class="range-value"><span id="hoursPerMeetingValue">10</span> hours</div>
                     <span class="input-hint">Industry benchmark: 8–12 hrs per meeting for manual processes.</span>
                 </div>
@@ -122,11 +123,9 @@
                 <!-- ROI % based on time savings (no cost input) -->
                 <div class="roi-section">
                     <div class="roi-label">Your Time ROI</div>
-                    <div class="roi-value"><span id="roiPercent">50</span>%</div>
+                    <div class="roi-value"><span id="roiPercent">60</span>%</div>
                     <p class="roi-caption">Meeting prep time recovered with eScribe</p>
-                    <p class="roi-context" id="roiContext">10 hrs today → 5 hrs with eScribe = 50% of prep time recovered.</p>
-                    <p class="roi-formula">Hours saved per meeting ÷ hours you spend now. Industry benchmark: manual prep often drops from 8–12+ hrs per meeting to ~5 with automation.</p>
-                    <p class="roi-source">Based on eScribe customer outcomes and typical automation savings.</p>
+                    <p class="roi-context" id="roiContext">10 hrs today → 4 hrs with eScribe = 60% of prep time recovered.</p>
                 </div>
 
                 <h2>Your Potential Savings</h2>
@@ -140,7 +139,7 @@
                                 <path d="M12 6v6l4 2"/>
                             </svg>
                         </div>
-                        <div class="result-value" id="totalHoursSaved">1,200</div>
+                        <div class="result-value" id="totalHoursSaved">288</div>
                         <div class="result-label">Hours Saved Per Year</div>
                     </div>
 
@@ -225,12 +224,12 @@
                             <div class="comparison-label">With eScribe</div>
                             <div class="comparison-bar escribe">
                                 <div class="bar-fill" id="escribeBar" style="width: 20%"></div>
-                                <span class="bar-value" id="escribeHours">5 hours</span>
+                                <span class="bar-value" id="escribeHours">4 hours</span>
                             </div>
                         </div>
                     </div>
                     <div class="comparison-savings">
-                        <span class="savings-percent" id="timeSavingsPercent">50%</span> time reduction per meeting
+                        <span class="savings-percent" id="timeSavingsPercent">60%</span> time reduction per meeting
                     </div>
                 </div>
 
@@ -245,9 +244,9 @@
                     <p class="cta-note">See your time savings put into action</p>
                 </div>
             </section>
-
-            <!-- Right Column: Compliance -->
-            <section class="compliance-section col-right">
+            </div>
+            <!-- Compliance: full width row below the two columns -->
+            <section class="compliance-section compliance-full-width">
                 <h2>Compliance Risk Assessment
                     <span class="citation-icon">
                         <span class="citation-tooltip">
@@ -352,7 +351,7 @@
 let currentCurrency = 'USD';
 const EXCHANGE_RATE = 1.36;
 const CONFIG = {
-    hoursWithEscribe: 5,
+    hoursWithEscribe: 4,
     costPerPage: 0.07,
     orgSizeDefaults: {
         small: { committee: 15, council: 15, staff: 2, hours: 8, rate: 35, pages: 100, copies: 10 },
@@ -428,8 +427,10 @@ function updateComplianceDisplay(level) {
 }
 function calculate() {
     const orgSize = elements.orgSize.value;
-    const committee = parseInt(elements.committeeMeetings.value) || 0, council = parseInt(elements.councilMeetings.value) || 0, meetings = committee + council || 48;
-    const staff = parseInt(elements.staffCount.value) || 3, hoursManual = parseInt(elements.hoursPerMeeting.value) || 10, hourlyRate = parseFloat(elements.hourlyRate.value) || 40;
+    const committee = parseInt(elements.committeeMeetings.value, 10) || 0;
+    const council = parseInt(elements.councilMeetings.value, 10) || 0;
+    const meetings = (committee + council) > 0 ? committee + council : 48;
+    const staff = parseInt(elements.staffCount.value) || 3, hoursManual = parseInt(elements.hoursPerMeeting.value, 10) || 10, hourlyRate = parseFloat(elements.hourlyRate.value) || 40;
     const pages = parseInt(elements.packetPages.value) || 150, copies = parseInt(elements.printedCopies.value) || 15;
     const hoursWithEscribe = CONFIG.hoursWithEscribe;
     const hoursSavedPerMeeting = hoursManual - hoursWithEscribe, totalHoursSaved = meetings * hoursSavedPerMeeting;
@@ -462,11 +463,11 @@ function calculate() {
     if (elements.manualBar) elements.manualBar.style.width = (hoursManual / maxHours * 100) + '%';
     if (elements.manualHours) elements.manualHours.textContent = hoursManual + ' hours';
     if (elements.escribeBar) elements.escribeBar.style.width = (hoursWithEscribe / maxHours * 100) + '%';
-    if (elements.escribeHours) elements.escribeHours.textContent = '5 hours';
+    if (elements.escribeHours) elements.escribeHours.textContent = '4 hours';
     if (elements.timeSavingsPercent) elements.timeSavingsPercent.textContent = timeSavingsPercent + '%';
     if (elements.avgSettlement) elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
     if (elements.roiPercent) elements.roiPercent.textContent = timeSavingsPercent;
-    if (elements.roiContext) elements.roiContext.textContent = hoursManual + ' hrs today → 5 hrs with eScribe = ' + timeSavingsPercent + '% of prep time recovered.';
+    if (elements.roiContext) elements.roiContext.textContent = hoursManual + ' hrs today → 4 hrs with eScribe = ' + timeSavingsPercent + '% of prep time recovered.';
 }
 function updateDefaults() {
     if (!elements.orgSize) return;
