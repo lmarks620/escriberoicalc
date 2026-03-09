@@ -124,7 +124,7 @@
                 <div class="roi-section">
                     <div class="roi-label">Your Time ROI</div>
                     <div class="roi-value"><span id="roiPercent">60</span>%</div>
-                    <p class="roi-caption">Meeting prep time recovered with eScribe</p>
+                    <p class="roi-caption">Return on current meeting prep spend (labor + printing)</p>
                     <p class="roi-context" id="roiContext">10 hrs today → 4 hrs with eScribe = 60% of prep time recovered.</p>
                 </div>
 
@@ -175,7 +175,7 @@
                             <span class="breakdown-value">$<span id="laborSavings">48,000</span>/year</span>
                         </div>
                         <div class="breakdown-detail">
-                            <span id="meetingsCountDetail">48</span> meetings × <span id="hoursSavedPerMeetingDetail">6</span> hrs saved per meeting = <span id="hoursSavedDetail">288</span> hours × $<span id="hourlyRateDetail">40</span>/hour
+                            <span id="meetingsCountDetail">48</span> meetings × <span id="hoursSavedPerMeetingDetail">6</span> hrs saved per meeting = <span id="hoursSavedDetail">288</span> hours <span id="hoursSavedPerStaffWrap">(<span id="hoursSavedPerStaffDetail">96</span> per staff)</span> × $<span id="hourlyRateDetail">40</span>/hour
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill labor" id="laborProgress" style="width: 85%"></div>
@@ -387,6 +387,8 @@ const elements = {
     meetingsCountDetail: document.getElementById('meetingsCountDetail'),
     hoursSavedPerMeetingDetail: document.getElementById('hoursSavedPerMeetingDetail'),
     hoursSavedDetail: document.getElementById('hoursSavedDetail'),
+    hoursSavedPerStaffDetail: document.getElementById('hoursSavedPerStaffDetail'),
+    hoursSavedPerStaffWrap: document.getElementById('hoursSavedPerStaffWrap'),
     hourlyRateDetail: document.getElementById('hourlyRateDetail'),
     laborProgress: document.getElementById('laborProgress'),
     printSavings: document.getElementById('printSavings'),
@@ -437,8 +439,11 @@ function calculate() {
     const pages = parseInt(elements.packetPages.value) || 150, copies = parseInt(elements.printedCopies.value) || 15;
     const hoursWithEscribe = CONFIG.hoursWithEscribe;
     const hoursSavedPerMeeting = Math.max(0, hoursManual - hoursWithEscribe), totalHoursSaved = meetings * hoursSavedPerMeeting;
-    const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const laborSavings = totalHoursSaved * hourlyRate, printSavings = meetings * pages * copies * CONFIG.costPerPage;
+    const currentLaborCost = meetings * hoursManual * hourlyRate, currentPrintCost = meetings * pages * copies * CONFIG.costPerPage;
+    const currentAnnualPrepCost = currentLaborCost + currentPrintCost;
+    const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
+    const roiPercent = currentAnnualPrepCost > 0 ? Math.min(100, Math.round(((laborSavings + printSavings) / currentAnnualPrepCost) * 100)) : 0;
     const complianceLevel = getComplianceLevel();
     updateComplianceDisplay(complianceLevel);
     const riskData = CONFIG.complianceRisk[orgSize][complianceLevel];
@@ -455,6 +460,9 @@ function calculate() {
     if (elements.meetingsCountDetail) elements.meetingsCountDetail.textContent = meetings;
     if (elements.hoursSavedPerMeetingDetail) elements.hoursSavedPerMeetingDetail.textContent = hoursSavedPerMeeting;
     if (elements.hoursSavedDetail) elements.hoursSavedDetail.textContent = formatNumber(totalHoursSaved);
+    const hoursSavedPerStaff = staff > 0 ? Math.round(totalHoursSaved / staff) : 0;
+    if (elements.hoursSavedPerStaffDetail) elements.hoursSavedPerStaffDetail.textContent = formatNumber(hoursSavedPerStaff);
+    if (elements.hoursSavedPerStaffWrap) elements.hoursSavedPerStaffWrap.style.display = staff > 0 ? '' : 'none';
     if (elements.hourlyRateDetail) elements.hourlyRateDetail.textContent = formatCurrency(hourlyRate);
     if (elements.printSavings) elements.printSavings.textContent = formatCurrency(printSavings);
     if (elements.meetingsDetail) elements.meetingsDetail.textContent = meetings;
@@ -471,8 +479,8 @@ function calculate() {
     if (elements.escribeHours) elements.escribeHours.textContent = '4 hours';
     if (elements.timeSavingsPercent) elements.timeSavingsPercent.textContent = timeSavingsPercent + '%';
     if (elements.avgSettlement) elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
-    if (elements.roiPercent) elements.roiPercent.textContent = timeSavingsPercent;
-    if (elements.roiContext) elements.roiContext.textContent = hoursManual > 0 ? (hoursManual + ' hrs today → 4 hrs with eScribe = ' + timeSavingsPercent + '% of prep time recovered.') : 'Enter your current hours per meeting to see time recovered.';
+    if (elements.roiPercent) elements.roiPercent.textContent = roiPercent;
+    if (elements.roiContext) elements.roiContext.textContent = currentAnnualPrepCost > 0 ? ('Annual prep cost today: $' + formatCurrency(currentAnnualPrepCost) + ' → save $' + formatCurrency(laborSavings + printSavings) + ' (' + roiPercent + '% ROI).') : 'Enter your inputs to see ROI.';
 }
 function updateDefaults() {
     if (!elements.orgSize) return;

@@ -9,8 +9,8 @@ const EXCHANGE_RATE = 1.36; // USD to CAD
 
 // Configuration and benchmarks
 const CONFIG = {
-    // Hours with eScribe (conservative benchmark so ROI % feels credible; ~5–6 with automation)
-    hoursWithEscribe: 6,
+    // Hours with eScribe (benchmark with automation)
+    hoursWithEscribe: 4,
     
     // Printing cost per page (B&W laser)
     costPerPage: 0.07,
@@ -21,7 +21,7 @@ const CONFIG = {
             committee: 15,
             council: 15,
             staff: 2,
-            hours: 20,
+            hours: 8,
             rate: 35,
             pages: 100,
             copies: 10
@@ -30,7 +30,7 @@ const CONFIG = {
             committee: 24,
             council: 24,
             staff: 3,
-            hours: 25,
+            hours: 10,
             rate: 40,
             pages: 150,
             copies: 15
@@ -39,7 +39,7 @@ const CONFIG = {
             committee: 36,
             council: 36,
             staff: 5,
-            hours: 30,
+            hours: 12,
             rate: 45,
             pages: 175,
             copies: 20
@@ -48,7 +48,7 @@ const CONFIG = {
             committee: 60,
             council: 60,
             staff: 8,
-            hours: 35,
+            hours: 14,
             rate: 50,
             pages: 200,
             copies: 25
@@ -114,7 +114,11 @@ const elements = {
     
     // Results - Breakdown
     laborSavings: document.getElementById('laborSavings'),
+    meetingsCountDetail: document.getElementById('meetingsCountDetail'),
+    hoursSavedPerMeetingDetail: document.getElementById('hoursSavedPerMeetingDetail'),
     hoursSavedDetail: document.getElementById('hoursSavedDetail'),
+    hoursSavedPerStaffDetail: document.getElementById('hoursSavedPerStaffDetail'),
+    hoursSavedPerStaffWrap: document.getElementById('hoursSavedPerStaffWrap'),
     hourlyRateDetail: document.getElementById('hourlyRateDetail'),
     laborProgress: document.getElementById('laborProgress'),
     
@@ -231,29 +235,26 @@ function updateComplianceDisplay(level) {
 function calculate() {
     // Get input values
     const orgSize = elements.orgSize.value;
-    const committee = parseInt(elements.committeeMeetings.value) || 0;
-    const council = parseInt(elements.councilMeetings.value) || 0;
-    const meetings = committee + council || 48;
+    const committee = parseInt(elements.committeeMeetings.value, 10) || 0;
+    const council = parseInt(elements.councilMeetings.value, 10) || 0;
+    const meetings = (committee + council) > 0 ? committee + council : 48;
     const staff = parseInt(elements.staffCount.value) || 3;
-    const hoursManual = parseInt(elements.hoursPerMeeting.value) || 25;
+    let hoursManual = parseInt(elements.hoursPerMeeting.value, 10);
+    if (isNaN(hoursManual) || hoursManual < 0) hoursManual = 10;
     const hourlyRate = parseFloat(elements.hourlyRate.value) || 40;
     const pages = parseInt(elements.packetPages.value) || 150;
     const copies = parseInt(elements.printedCopies.value) || 15;
     
-    // Hours with eScribe: fixed benchmark (~5 hrs with automation so ROI % varies with manual hours)
     const hoursWithEscribe = CONFIG.hoursWithEscribe;
-    
-    // Calculate time savings
-    const hoursSavedPerMeeting = hoursManual - hoursWithEscribe;
+    const hoursSavedPerMeeting = Math.max(0, hoursManual - hoursWithEscribe);
     const totalHoursSaved = meetings * hoursSavedPerMeeting;
-    // Time ROI = % of meeting prep time recovered (hours you get back per meeting ÷ hours you spend now)
-    const timeSavingsPercent = Math.round((hoursSavedPerMeeting / hoursManual) * 100);
-    
-    // Calculate labor savings
     const laborSavings = totalHoursSaved * hourlyRate;
-    
-    // Calculate print savings
     const printSavings = meetings * pages * copies * CONFIG.costPerPage;
+    const currentLaborCost = meetings * hoursManual * hourlyRate;
+    const currentPrintCost = meetings * pages * copies * CONFIG.costPerPage;
+    const currentAnnualPrepCost = currentLaborCost + currentPrintCost;
+    const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
+    const roiPercent = currentAnnualPrepCost > 0 ? Math.min(100, Math.round(((laborSavings + printSavings) / currentAnnualPrepCost) * 100)) : 0;
     
     // Calculate compliance risk
     const complianceLevel = getComplianceLevel();
@@ -284,7 +285,12 @@ function calculate() {
     
     // Update display - Breakdown
     elements.laborSavings.textContent = formatCurrency(laborSavings);
+    if (elements.meetingsCountDetail) elements.meetingsCountDetail.textContent = meetings;
+    if (elements.hoursSavedPerMeetingDetail) elements.hoursSavedPerMeetingDetail.textContent = hoursSavedPerMeeting;
     elements.hoursSavedDetail.textContent = formatNumber(totalHoursSaved);
+    const hoursSavedPerStaff = staff > 0 ? Math.round(totalHoursSaved / staff) : 0;
+    if (elements.hoursSavedPerStaffDetail) elements.hoursSavedPerStaffDetail.textContent = formatNumber(hoursSavedPerStaff);
+    if (elements.hoursSavedPerStaffWrap) elements.hoursSavedPerStaffWrap.style.display = staff > 0 ? '' : 'none';
     elements.hourlyRateDetail.textContent = formatCurrency(hourlyRate);
     
     elements.printSavings.textContent = formatCurrency(printSavings);
@@ -307,19 +313,17 @@ function calculate() {
     elements.manualBar.style.width = `${(hoursManual / maxHours) * 100}%`;
     elements.manualHours.textContent = `${hoursManual} hours`;
     elements.escribeBar.style.width = `${(hoursWithEscribe / maxHours) * 100}%`;
-    elements.escribeHours.textContent = '~5–6 hours';
+    elements.escribeHours.textContent = '4 hours';
     elements.timeSavingsPercent.textContent = `${timeSavingsPercent}%`;
     
     // Update risk detail
     elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
     
-    // Update Time ROI % (% of meeting prep time recovered)
-    if (elements.roiPercent) {
-        elements.roiPercent.textContent = timeSavingsPercent;
-    }
-    // Show the math so the % feels credible
+    if (elements.roiPercent) elements.roiPercent.textContent = roiPercent;
     if (elements.roiContext) {
-        elements.roiContext.textContent = `${hoursManual} hrs today → ~5–6 hrs with eScribe = ${timeSavingsPercent}% of prep time recovered.`;
+        elements.roiContext.textContent = currentAnnualPrepCost > 0
+            ? `Annual prep cost today: $${formatCurrency(currentAnnualPrepCost)} → save $${formatCurrency(laborSavings + printSavings)} (${roiPercent}% ROI).`
+            : 'Enter your inputs to see ROI.';
     }
 }
 
