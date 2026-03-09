@@ -14,7 +14,7 @@ const CONFIG = {
     
     // Printing cost per page (B&W laser)
     costPerPage: 0.07,
-    annualPrepBaseline: 12000,
+    baselineByOrgSize: { small: 12000, medium: 18000, large: 45000, major: 75000 },
     
     // Organization size defaults (committee + council = total meetings)
     orgSizeDefaults: {
@@ -254,7 +254,8 @@ function calculate() {
     const printSavings = meetings * pages * copies * CONFIG.costPerPage;
     const currentLaborCost = staff * meetings * hoursManual * hourlyRate;
     const currentPrintCost = meetings * pages * copies * CONFIG.costPerPage;
-    const currentAnnualPrepCost = (CONFIG.annualPrepBaseline || 0) + currentLaborCost + currentPrintCost;
+    const annualBaseline = (CONFIG.baselineByOrgSize && CONFIG.baselineByOrgSize[orgSize]) || 12000;
+    const currentAnnualPrepCost = annualBaseline + currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const roiPercent = currentAnnualPrepCost > 0 ? Math.min(100, Math.round(((laborSavings + printSavings) / currentAnnualPrepCost) * 100)) : 0;
     
@@ -285,17 +286,7 @@ function calculate() {
     elements.totalSavings.textContent = formatCurrency(totalSavings);
     elements.complianceRisk.textContent = formatCurrency(currentRiskExposure);
     
-    // Update display - Breakdown
-    elements.laborSavings.textContent = formatCurrency(laborSavings);
-    if (elements.staffCountDetail) elements.staffCountDetail.textContent = staff;
-    if (elements.meetingsCountDetail) elements.meetingsCountDetail.textContent = meetings;
-    if (elements.hoursSavedPerMeetingDetail) elements.hoursSavedPerMeetingDetail.textContent = hoursSavedPerMeeting;
-    elements.hoursSavedDetail.textContent = formatNumber(totalHoursSaved);
-    const hoursSavedPerStaff = staff > 0 ? Math.round(totalHoursSaved / staff) : 0;
-    if (elements.hoursSavedPerStaffDetail) elements.hoursSavedPerStaffDetail.textContent = formatNumber(hoursSavedPerStaff);
-    if (elements.hoursSavedPerStaffWrap) elements.hoursSavedPerStaffWrap.style.display = staff > 0 ? '' : 'none';
-    elements.hourlyRateDetail.textContent = formatCurrency(hourlyRate);
-    
+    // Update display - Breakdown (printing + compliance only)
     elements.printSavings.textContent = formatCurrency(printSavings);
     elements.meetingsDetail.textContent = meetings;
     elements.pagesDetail.textContent = pages;
@@ -303,13 +294,12 @@ function calculate() {
     
     elements.complianceSavings.textContent = formatCurrency(complianceSavings);
     
-    // Update progress bars (relative to total)
-    const maxSaving = Math.max(laborSavings, printSavings, complianceSavings);
-    const totalForProgress = laborSavings + printSavings + complianceSavings;
-    
-    elements.laborProgress.style.width = `${(laborSavings / totalForProgress) * 100}%`;
-    elements.printProgress.style.width = `${(printSavings / totalForProgress) * 100}%`;
-    elements.complianceProgress.style.width = `${(complianceSavings / totalForProgress) * 100}%`;
+    // Update progress bars (print + compliance only)
+    const totalForProgress = printSavings + complianceSavings;
+    if (totalForProgress > 0) {
+        elements.printProgress.style.width = `${(printSavings / totalForProgress) * 100}%`;
+        elements.complianceProgress.style.width = `${(complianceSavings / totalForProgress) * 100}%`;
+    }
     
     // Update time comparison
     const maxHours = Math.max(hoursManual, 50);
@@ -323,11 +313,6 @@ function calculate() {
     elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
     
     if (elements.roiPercent) elements.roiPercent.textContent = roiPercent;
-    if (elements.roiContext) {
-        elements.roiContext.textContent = currentAnnualPrepCost > 0
-            ? `Annual prep cost today: $${formatCurrency(currentAnnualPrepCost)} → save $${formatCurrency(laborSavings + printSavings)} (${roiPercent}% ROI).`
-            : 'Enter your inputs to see ROI.';
-    }
 }
 
 // Update defaults when organization size changes

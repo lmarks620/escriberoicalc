@@ -124,8 +124,6 @@
                 <div class="roi-section">
                     <div class="roi-label">Results</div>
                     <div class="roi-value"><span id="roiPercent">60</span>%</div>
-                    <p class="roi-caption">Return on current meeting prep spend (labor + printing)</p>
-                    <p class="roi-context" id="roiContext">10 hrs today → 4 hrs with eScribe = 60% of prep time recovered.</p>
                 </div>
 
                 <h2>Your Potential Savings</h2>
@@ -165,23 +163,34 @@
                     </div>
                 </div>
 
-                <!-- Detailed Breakdown -->
+                <!-- Time Per Meeting (above breakdown) -->
+                <div class="time-comparison">
+                    <h3>Time Per Meeting</h3>
+                    <div class="comparison-bars">
+                        <div class="comparison-item">
+                            <div class="comparison-label">Manual Process</div>
+                            <div class="comparison-bar manual">
+                                <div class="bar-fill" id="manualBar" style="width: 100%"></div>
+                                <span class="bar-value" id="manualHours">10 hours</span>
+                            </div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">With eScribe</div>
+                            <div class="comparison-bar escribe">
+                                <div class="bar-fill" id="escribeBar" style="width: 20%"></div>
+                                <span class="bar-value" id="escribeHours">4 hours</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comparison-savings">
+                        <span class="savings-percent" id="timeSavingsPercent">60%</span> time reduction per meeting
+                    </div>
+                </div>
+
+                <!-- Savings Breakdown (printing + compliance only) -->
                 <div class="breakdown">
                     <h3>Savings Breakdown</h3>
                     
-                    <div class="breakdown-item">
-                        <div class="breakdown-header">
-                            <span class="breakdown-label">Labor Cost Savings</span>
-                            <span class="breakdown-value">$<span id="laborSavings">48,000</span>/year</span>
-                        </div>
-                        <div class="breakdown-detail">
-                            <span id="staffCountDetail">3</span> staff × <span id="meetingsCountDetail">48</span> meetings × <span id="hoursSavedPerMeetingDetail">6</span> hrs saved = <span id="hoursSavedDetail">864</span> hours <span id="hoursSavedPerStaffWrap">(<span id="hoursSavedPerStaffDetail">288</span> per staff)</span> × $<span id="hourlyRateDetail">40</span>/hour
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill labor" id="laborProgress" style="width: 85%"></div>
-                        </div>
-                    </div>
-
                     <div class="breakdown-item">
                         <div class="breakdown-header">
                             <span class="breakdown-label">Printing Cost Savings</span>
@@ -206,30 +215,6 @@
                         <div class="progress-bar">
                             <div class="progress-fill compliance" id="complianceProgress" style="width: 12%"></div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Time Comparison -->
-                <div class="time-comparison">
-                    <h3>Time Per Meeting</h3>
-                    <div class="comparison-bars">
-                        <div class="comparison-item">
-                            <div class="comparison-label">Manual Process</div>
-                            <div class="comparison-bar manual">
-                                <div class="bar-fill" id="manualBar" style="width: 100%"></div>
-                                <span class="bar-value" id="manualHours">10 hours</span>
-                            </div>
-                        </div>
-                        <div class="comparison-item">
-                            <div class="comparison-label">With eScribe</div>
-                            <div class="comparison-bar escribe">
-                                <div class="bar-fill" id="escribeBar" style="width: 20%"></div>
-                                <span class="bar-value" id="escribeHours">4 hours</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="comparison-savings">
-                        <span class="savings-percent" id="timeSavingsPercent">60%</span> time reduction per meeting
                     </div>
                 </div>
 
@@ -353,7 +338,7 @@ const EXCHANGE_RATE = 1.36;
 const CONFIG = {
     hoursWithEscribe: 4,
     costPerPage: 0.07,
-    annualPrepBaseline: 12000,
+    baselineByOrgSize: { small: 12000, medium: 18000, large: 45000, major: 75000 },
     orgSizeDefaults: {
         small: { committee: 15, council: 15, staff: 2, hours: 8, rate: 35, pages: 100, copies: 10 },
         medium: { committee: 24, council: 24, staff: 3, hours: 10, rate: 40, pages: 150, copies: 15 },
@@ -444,7 +429,8 @@ function calculate() {
     const totalHoursSaved = staff * meetings * hoursSavedPerMeeting;
     const laborSavings = totalHoursSaved * hourlyRate, printSavings = meetings * pages * copies * CONFIG.costPerPage;
     const currentLaborCost = staff * meetings * hoursManual * hourlyRate, currentPrintCost = meetings * pages * copies * CONFIG.costPerPage;
-    const currentAnnualPrepCost = (CONFIG.annualPrepBaseline || 0) + currentLaborCost + currentPrintCost;
+    const annualBaseline = (CONFIG.baselineByOrgSize && CONFIG.baselineByOrgSize[orgSize]) || 12000;
+    const currentAnnualPrepCost = annualBaseline + currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const roiPercent = currentAnnualPrepCost > 0 ? Math.min(100, Math.round(((laborSavings + printSavings) / currentAnnualPrepCost) * 100)) : 0;
     const complianceLevel = getComplianceLevel();
@@ -455,27 +441,18 @@ function calculate() {
     const reducedExposure = currentRiskExposure * (1 - CONFIG.escribeRiskReduction), reducedProbability = currentProbability * (1 - CONFIG.escribeRiskReduction);
     const annualRiskCostWith = (reducedExposure * reducedProbability) / 5;
     const complianceSavings = annualRiskCostWithout - annualRiskCostWith;
-    const totalSavings = laborSavings + printSavings, totalForProgress = laborSavings + printSavings + complianceSavings;
+    const totalSavings = laborSavings + printSavings;
     if (elements.totalHoursSaved) elements.totalHoursSaved.textContent = formatNumber(totalHoursSaved);
     if (elements.totalSavings) elements.totalSavings.textContent = formatCurrency(totalSavings);
     if (elements.complianceRisk) elements.complianceRisk.textContent = formatCurrency(currentRiskExposure);
-    if (elements.laborSavings) elements.laborSavings.textContent = formatCurrency(laborSavings);
-    if (elements.staffCountDetail) elements.staffCountDetail.textContent = staff;
-    if (elements.meetingsCountDetail) elements.meetingsCountDetail.textContent = meetings;
-    if (elements.hoursSavedPerMeetingDetail) elements.hoursSavedPerMeetingDetail.textContent = hoursSavedPerMeeting;
-    if (elements.hoursSavedDetail) elements.hoursSavedDetail.textContent = formatNumber(totalHoursSaved);
-    const hoursSavedPerStaff = staff > 0 ? Math.round(totalHoursSaved / staff) : 0;
-    if (elements.hoursSavedPerStaffDetail) elements.hoursSavedPerStaffDetail.textContent = formatNumber(hoursSavedPerStaff);
-    if (elements.hoursSavedPerStaffWrap) elements.hoursSavedPerStaffWrap.style.display = staff > 0 ? '' : 'none';
-    if (elements.hourlyRateDetail) elements.hourlyRateDetail.textContent = formatCurrency(hourlyRate);
     if (elements.printSavings) elements.printSavings.textContent = formatCurrency(printSavings);
     if (elements.meetingsDetail) elements.meetingsDetail.textContent = meetings;
     if (elements.pagesDetail) elements.pagesDetail.textContent = pages;
     if (elements.copiesDetail) elements.copiesDetail.textContent = copies;
     if (elements.complianceSavings) elements.complianceSavings.textContent = formatCurrency(complianceSavings);
-    if (elements.laborProgress) elements.laborProgress.style.width = (laborSavings / totalForProgress * 100) + '%';
-    if (elements.printProgress) elements.printProgress.style.width = (printSavings / totalForProgress * 100) + '%';
-    if (elements.complianceProgress) elements.complianceProgress.style.width = (complianceSavings / totalForProgress * 100) + '%';
+    const totalForProgress = printSavings + complianceSavings;
+    if (elements.printProgress) elements.printProgress.style.width = (totalForProgress > 0 ? (printSavings / totalForProgress * 100) : 0) + '%';
+    if (elements.complianceProgress) elements.complianceProgress.style.width = (totalForProgress > 0 ? (complianceSavings / totalForProgress * 100) : 0) + '%';
     const maxHours = Math.max(hoursManual, 50);
     if (elements.manualBar) elements.manualBar.style.width = (hoursManual / maxHours * 100) + '%';
     if (elements.manualHours) elements.manualHours.textContent = hoursManual + ' hours';
@@ -484,7 +461,6 @@ function calculate() {
     if (elements.timeSavingsPercent) elements.timeSavingsPercent.textContent = timeSavingsPercent + '%';
     if (elements.avgSettlement) elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
     if (elements.roiPercent) elements.roiPercent.textContent = roiPercent;
-    if (elements.roiContext) elements.roiContext.textContent = currentAnnualPrepCost > 0 ? ('Annual prep cost today: $' + formatCurrency(currentAnnualPrepCost) + ' → save $' + formatCurrency(laborSavings + printSavings) + ' (' + roiPercent + '% ROI).') : 'Enter your inputs to see ROI.';
 }
 function updateDefaults() {
     if (!elements.orgSize) return;
