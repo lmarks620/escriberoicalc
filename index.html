@@ -353,6 +353,7 @@ const EXCHANGE_RATE = 1.36;
 const CONFIG = {
     hoursWithEscribe: 4,
     costPerPage: 0.07,
+    prepOverheadPerStaff: 5000,
     orgSizeDefaults: {
         small: { committee: 15, council: 15, staff: 2, hours: 8, rate: 35, pages: 100, copies: 10 },
         medium: { committee: 24, council: 24, staff: 3, hours: 10, rate: 40, pages: 150, copies: 15 },
@@ -441,7 +442,8 @@ function calculate() {
     const hoursSavedPerMeeting = Math.max(0, hoursManual - hoursWithEscribe), totalHoursSaved = meetings * hoursSavedPerMeeting;
     const laborSavings = totalHoursSaved * hourlyRate, printSavings = meetings * pages * copies * CONFIG.costPerPage;
     const currentLaborCost = meetings * hoursManual * hourlyRate, currentPrintCost = meetings * pages * copies * CONFIG.costPerPage;
-    const currentAnnualPrepCost = currentLaborCost + currentPrintCost;
+    const staffOverhead = staff * (CONFIG.prepOverheadPerStaff || 0);
+    const currentAnnualPrepCost = staffOverhead + currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const roiPercent = currentAnnualPrepCost > 0 ? Math.min(100, Math.round(((laborSavings + printSavings) / currentAnnualPrepCost) * 100)) : 0;
     const complianceLevel = getComplianceLevel();
