@@ -147,8 +147,8 @@
                                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
                             </svg>
                         </div>
-                        <div class="result-value">$<span id="totalSavings">55,560</span></div>
-                        <div class="result-label">Total Annual Savings</div>
+                        <div class="result-value">$<span id="printingCostNow">7,560</span></div>
+                        <div class="result-label">Total Annual Printing Savings</div>
                     </div>
 
                     <div class="result-card protected">
@@ -367,7 +367,7 @@ const elements = {
     complianceScoreBox: document.getElementById('complianceScoreBox'),
     complianceScore: document.getElementById('complianceScore'),
     totalHoursSaved: document.getElementById('totalHoursSaved'),
-    totalSavings: document.getElementById('totalSavings'),
+    printingCostNow: document.getElementById('printingCostNow'),
     complianceRisk: document.getElementById('complianceRisk'),
     laborSavings: document.getElementById('laborSavings'),
     staffCountDetail: document.getElementById('staffCountDetail'),
@@ -443,7 +443,7 @@ function calculate() {
     const complianceSavings = annualRiskCostWithout - annualRiskCostWith;
     const totalSavings = laborSavings + printSavings;
     if (elements.totalHoursSaved) elements.totalHoursSaved.textContent = formatNumber(totalHoursSaved);
-    if (elements.totalSavings) elements.totalSavings.textContent = formatCurrency(totalSavings);
+    if (elements.printingCostNow) elements.printingCostNow.textContent = formatCurrency(printSavings);
     if (elements.complianceRisk) elements.complianceRisk.textContent = formatCurrency(currentRiskExposure);
     if (elements.printSavings) elements.printSavings.textContent = formatCurrency(printSavings);
     if (elements.meetingsDetail) elements.meetingsDetail.textContent = meetings;

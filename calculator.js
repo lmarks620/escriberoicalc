@@ -110,7 +110,7 @@ const elements = {
     
     // Results - Summary
     totalHoursSaved: document.getElementById('totalHoursSaved'),
-    totalSavings: document.getElementById('totalSavings'),
+    printingCostNow: document.getElementById('printingCostNow'),
     complianceRisk: document.getElementById('complianceRisk'),
     
     // Results - Breakdown
@@ -283,7 +283,7 @@ function calculate() {
     
     // Update display - Summary cards
     elements.totalHoursSaved.textContent = formatNumber(totalHoursSaved);
-    elements.totalSavings.textContent = formatCurrency(totalSavings);
+    elements.printingCostNow.textContent = formatCurrency(printSavings);
     elements.complianceRisk.textContent = formatCurrency(currentRiskExposure);
     
     // Update display - Breakdown (printing + compliance only)
