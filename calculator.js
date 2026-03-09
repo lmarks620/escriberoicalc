@@ -14,6 +14,7 @@ const CONFIG = {
     
     // Printing cost per page (B&W laser)
     costPerPage: 0.07,
+    annualPrepBaseline: 12000,
     
     // Organization size defaults (committee + council = total meetings)
     orgSizeDefaults: {
@@ -253,7 +254,7 @@ function calculate() {
     const printSavings = meetings * pages * copies * CONFIG.costPerPage;
     const currentLaborCost = staff * meetings * hoursManual * hourlyRate;
     const currentPrintCost = meetings * pages * copies * CONFIG.costPerPage;
-    const currentAnnualPrepCost = currentLaborCost + currentPrintCost;
+    const currentAnnualPrepCost = (CONFIG.annualPrepBaseline || 0) + currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const roiPercent = currentAnnualPrepCost > 0 ? Math.min(100, Math.round(((laborSavings + printSavings) / currentAnnualPrepCost) * 100)) : 0;
     
