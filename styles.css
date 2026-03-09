@@ -208,8 +208,22 @@ body {
     font-size: 0.8125rem;
 }
 
+.citation-tooltip a.tooltip-title-link {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
 .citation-tooltip a:hover {
     color: white;
+}
+
+.citation-tooltip .tooltip-body {
+    margin: 0 0 0.5rem 0;
+}
+
+.citation-tooltip .tooltip-list {
+    margin: 0;
+    padding-left: 1.25rem;
 }
 
 /* Tooltip positioning adjustments for edge cases */
