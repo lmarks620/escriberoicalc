@@ -14,7 +14,6 @@ const CONFIG = {
     
     // Printing cost per page (B&W laser)
     costPerPage: 0.07,
-    prepOverheadPerStaff: 5000,
     
     // Organization size defaults (committee + council = total meetings)
     orgSizeDefaults: {
@@ -115,6 +114,7 @@ const elements = {
     
     // Results - Breakdown
     laborSavings: document.getElementById('laborSavings'),
+    staffCountDetail: document.getElementById('staffCountDetail'),
     meetingsCountDetail: document.getElementById('meetingsCountDetail'),
     hoursSavedPerMeetingDetail: document.getElementById('hoursSavedPerMeetingDetail'),
     hoursSavedDetail: document.getElementById('hoursSavedDetail'),
@@ -248,13 +248,12 @@ function calculate() {
     
     const hoursWithEscribe = CONFIG.hoursWithEscribe;
     const hoursSavedPerMeeting = Math.max(0, hoursManual - hoursWithEscribe);
-    const totalHoursSaved = meetings * hoursSavedPerMeeting;
+    const totalHoursSaved = staff * meetings * hoursSavedPerMeeting;
     const laborSavings = totalHoursSaved * hourlyRate;
     const printSavings = meetings * pages * copies * CONFIG.costPerPage;
-    const currentLaborCost = meetings * hoursManual * hourlyRate;
+    const currentLaborCost = staff * meetings * hoursManual * hourlyRate;
     const currentPrintCost = meetings * pages * copies * CONFIG.costPerPage;
-    const staffOverhead = staff * (CONFIG.prepOverheadPerStaff || 0);
-    const currentAnnualPrepCost = staffOverhead + currentLaborCost + currentPrintCost;
+    const currentAnnualPrepCost = currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const roiPercent = currentAnnualPrepCost > 0 ? Math.min(100, Math.round(((laborSavings + printSavings) / currentAnnualPrepCost) * 100)) : 0;
     
@@ -287,6 +286,7 @@ function calculate() {
     
     // Update display - Breakdown
     elements.laborSavings.textContent = formatCurrency(laborSavings);
+    if (elements.staffCountDetail) elements.staffCountDetail.textContent = staff;
     if (elements.meetingsCountDetail) elements.meetingsCountDetail.textContent = meetings;
     if (elements.hoursSavedPerMeetingDetail) elements.hoursSavedPerMeetingDetail.textContent = hoursSavedPerMeeting;
     elements.hoursSavedDetail.textContent = formatNumber(totalHoursSaved);
