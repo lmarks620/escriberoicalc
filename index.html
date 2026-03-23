@@ -60,13 +60,20 @@
                 <!-- Council Meetings Per Year -->
                 <div class="input-group">
                     <label for="councilMeetings">Council Meetings Per Year</label>
-                    <input type="number" id="councilMeetings" value="24" min="0" max="500">
+                    <input type="number" id="councilMeetings" value="12" min="0" max="500">
                     <span class="input-hint">Council + committee = total meetings</span>
                 </div>
 
                 <!-- Staff Involved -->
                 <div class="input-group">
-                    <label for="staffCount">Staff Involved in Meeting Prep</label>
+                    <label for="staffCount">Staff Involved in Meeting Prep
+                        <span class="citation-icon">
+                            <span class="citation-tooltip">
+                                <strong>Source: State of the Clerk’s Office Survey</strong> (eScribe &amp; IIMC): <strong>86% of respondents</strong> work in clerk’s offices with <strong>1–5 people</strong>. The survey does not publish a separate headcount by city size; defaults use <strong>2–5 staff</strong> (within that band) from small → major so the model scales with org size. Adjust to your actual team.
+                                <a href="https://www.escribemeetings.com/resources/state-of-clerks-survey/" target="_blank" rel="noopener">View survey</a>
+                            </span>
+                        </span>
+                    </label>
                     <input type="number" id="staffCount" value="3" min="1" max="50">
                 </div>
 
@@ -91,10 +98,19 @@
 
                 <!-- Hourly Rate -->
                 <div class="input-group">
-                    <label for="hourlyRate">Average Staff Hourly Rate (Loaded)</label>
+                    <label for="hourlyRate">Average Staff Hourly Rate (Loaded)
+                        <span class="citation-icon">
+                            <span class="citation-tooltip">
+                                <strong>Source: U.S. Bureau of Labor Statistics, OEWS (May 2023)</strong> — SOC <strong>43-4031</strong> Court, Municipal, and License Clerks. <strong>National median hourly wage: $22.17</strong> (50th percentile). Local government (excluding schools/hospitals) mean hourly wage: <strong>$23.34</strong> (same release).
+                                <a href="https://www.bls.gov/oes/2023/may/oes434031.htm" target="_blank" rel="noopener">BLS OEWS table (43-4031)</a>
+                                <br><br>
+                                Default <strong>loaded</strong> rate <strong>$29/hr</strong> ≈ national median <strong>× 1.3</strong> for benefits (per hint below). Update when new OEWS data publish or use your payroll.
+                            </span>
+                        </span>
+                    </label>
                     <div class="input-with-prefix">
                         <span class="prefix">$</span>
-                        <input type="number" id="hourlyRate" value="40" min="20" max="100">
+                        <input type="number" id="hourlyRate" value="29" min="20" max="100">
                     </div>
                     <span class="input-hint">Include benefits (typically 1.3x base salary)</span>
                 </div>
@@ -119,7 +135,7 @@
                 <div class="input-group">
                     <label for="printedCopies">Printed Copies Per Meeting</label>
                     <input type="number" id="printedCopies" value="15" min="0" max="100">
-                    <span class="input-hint">Council members + staff + public copies</span>
+                    <span class="input-hint">Council members + staff</span>
                 </div>
             </section>
 
@@ -142,7 +158,7 @@
                                 <path d="M12 6v6l4 2"/>
                             </svg>
                         </div>
-                        <div class="result-value" id="totalHoursSaved">864</div>
+                        <div class="result-value" id="totalHoursSaved">648</div>
                         <div class="result-label">Hours Saved Per Year</div>
                     </div>
 
@@ -152,7 +168,7 @@
                                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
                             </svg>
                         </div>
-                        <div class="result-value">$<span id="printingCostNow">7,560</span></div>
+                        <div class="result-value">$<span id="printingCostNow">5,670</span></div>
                         <div class="result-label">Annual Printing Savings</div>
                     </div>
 
@@ -199,10 +215,10 @@
                     <div class="breakdown-item">
                         <div class="breakdown-header">
                             <span class="breakdown-label">Printing Cost Savings</span>
-                            <span class="breakdown-value">$<span id="printSavings">7,560</span>/year</span>
+                            <span class="breakdown-value">$<span id="printSavings">5,670</span>/year</span>
                         </div>
                         <div class="breakdown-detail">
-                            <span id="meetingsDetail">48</span> meetings × <span id="pagesDetail">150</span> pages × <span id="copiesDetail">15</span> copies × $0.07
+                            <span id="meetingsDetail">36</span> meetings × <span id="pagesDetail">150</span> pages × <span id="copiesDetail">15</span> copies × $0.07
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill print" id="printProgress" style="width: 15%"></div>
@@ -345,10 +361,10 @@ const CONFIG = {
     costPerPage: 0.07,
     baselineByOrgSize: { small: 12000, medium: 18000, large: 45000, major: 75000 },
     orgSizeDefaults: {
-        small: { committee: 15, council: 15, staff: 2, hours: 8, rate: 35, pages: 100, copies: 10 },
-        medium: { committee: 24, council: 24, staff: 3, hours: 10, rate: 40, pages: 150, copies: 15 },
-        large: { committee: 36, council: 36, staff: 5, hours: 12, rate: 45, pages: 175, copies: 20 },
-        major: { committee: 60, council: 60, staff: 8, hours: 14, rate: 50, pages: 200, copies: 25 }
+        small: { committee: 15, council: 12, staff: 2, hours: 8, rate: 29, pages: 100, copies: 10 },
+        medium: { committee: 24, council: 12, staff: 3, hours: 10, rate: 29, pages: 150, copies: 15 },
+        large: { committee: 36, council: 12, staff: 4, hours: 12, rate: 29, pages: 175, copies: 20 },
+        major: { committee: 60, council: 12, staff: 5, hours: 14, rate: 29, pages: 200, copies: 25 }
     },
     complianceRisk: {
         small: { high: { exposure: 50000, probability: 0.10 }, medium: { exposure: 30000, probability: 0.05 }, low: { exposure: 15000, probability: 0.02 } },
@@ -427,7 +443,7 @@ function calculate() {
     const council = parseInt(elements.councilMeetings.value, 10) || 0;
     const meetings = (committee + council) > 0 ? committee + council : 48;
     const staff = parseInt(elements.staffCount.value) || 3, hoursManual = parseInt(elements.hoursPerMeeting.value, 10); if (isNaN(hoursManual) || hoursManual < 0) hoursManual = 10;
-    const hourlyRate = parseFloat(elements.hourlyRate.value) || 40;
+    const hourlyRate = parseFloat(elements.hourlyRate.value) || 29;
     const pages = parseInt(elements.packetPages.value) || 150, copies = parseInt(elements.printedCopies.value) || 15;
     const hoursWithEscribe = CONFIG.hoursWithEscribe;
     const hoursSavedPerMeeting = Math.max(0, hoursManual - hoursWithEscribe);

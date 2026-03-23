@@ -20,37 +20,37 @@ const CONFIG = {
     orgSizeDefaults: {
         small: {
             committee: 15,
-            council: 15,
+            council: 12,
             staff: 2,
             hours: 8,
-            rate: 35,
+            rate: 29,
             pages: 100,
             copies: 10
         },
         medium: {
             committee: 24,
-            council: 24,
+            council: 12,
             staff: 3,
             hours: 10,
-            rate: 40,
+            rate: 29,
             pages: 150,
             copies: 15
         },
         large: {
             committee: 36,
-            council: 36,
-            staff: 5,
+            council: 12,
+            staff: 4,
             hours: 12,
-            rate: 45,
+            rate: 29,
             pages: 175,
             copies: 20
         },
         major: {
             committee: 60,
-            council: 60,
-            staff: 8,
+            council: 12,
+            staff: 5,
             hours: 14,
-            rate: 50,
+            rate: 29,
             pages: 200,
             copies: 25
         }
@@ -243,7 +243,7 @@ function calculate() {
     const staff = parseInt(elements.staffCount.value) || 3;
     let hoursManual = parseInt(elements.hoursPerMeeting.value, 10);
     if (isNaN(hoursManual) || hoursManual < 0) hoursManual = 10;
-    const hourlyRate = parseFloat(elements.hourlyRate.value) || 40;
+    const hourlyRate = parseFloat(elements.hourlyRate.value) || 29;
     const pages = parseInt(elements.packetPages.value) || 150;
     const copies = parseInt(elements.printedCopies.value) || 15;
     
