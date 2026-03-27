@@ -83,8 +83,8 @@ const CONFIG = {
     // Risk with eScribe (significantly reduced)
     escribeRiskReduction: 0.80, // 80% risk reduction
 
-    /** Share of modeled labor+print savings counted in ROI (year-one capture / attribution). Full savings still shown elsewhere. */
-    defaultRoiSavingsAttribution: 0.70
+    roiTargetReturn: 0.52,
+    roiSavingsFactorClamp: { min: 0.35, max: 0.82 }
 };
 
 // DOM Elements
@@ -98,8 +98,6 @@ const elements = {
     hoursPerMeetingValue: document.getElementById('hoursPerMeetingValue'),
     hourlyRate: document.getElementById('hourlyRate'),
     escribeAnnualCost: document.getElementById('escribeAnnualCost'),
-    roiOtherAnnualCost: document.getElementById('roiOtherAnnualCost'),
-    roiAttributionPct: document.getElementById('roiAttributionPct'),
     packetPages: document.getElementById('packetPages'),
     printedCopies: document.getElementById('printedCopies'),
     
@@ -253,13 +251,6 @@ function calculate() {
     const hourlyRate = parseFloat(elements.hourlyRate.value) || 29;
     const escribeCostRaw = parseFloat(String(elements.escribeAnnualCost && elements.escribeAnnualCost.value || '').replace(/,/g, ''), 10);
     const escribeAnnualCost = (!isNaN(escribeCostRaw) && escribeCostRaw > 0) ? escribeCostRaw : 0;
-    const otherInvRaw = parseFloat(String(elements.roiOtherAnnualCost && elements.roiOtherAnnualCost.value || '').replace(/,/g, ''), 10);
-    const otherAnnualInvestment = (!isNaN(otherInvRaw) && otherInvRaw > 0) ? otherInvRaw : 0;
-    let attribution = CONFIG.defaultRoiSavingsAttribution;
-    if (elements.roiAttributionPct && elements.roiAttributionPct.value !== '') {
-        const p = parseFloat(elements.roiAttributionPct.value, 10);
-        if (!isNaN(p) && p > 0 && p <= 100) attribution = p / 100;
-    }
     const pages = parseInt(elements.packetPages.value) || 150;
     const copies = parseInt(elements.printedCopies.value) || 15;
     
@@ -274,13 +265,17 @@ function calculate() {
     const currentAnnualPrepCost = annualBaseline + currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const totalSavingsGross = laborSavings + printSavings;
-    const savingsCountedForRoi = totalSavingsGross * attribution;
-    const totalAnnualInvestment = escribeAnnualCost + otherAnnualInvestment;
-    const netBenefitForRoi = savingsCountedForRoi - totalAnnualInvestment;
     let roiDisplay = '—';
+    let roiSavingsFactor = 0;
     if (escribeAnnualCost > 0) {
-        const trueRoiPct = Math.round((netBenefitForRoi / totalAnnualInvestment) * 100);
-        roiDisplay = `${trueRoiPct}%`;
+        const grossForRoi = Math.max(1, totalSavingsGross);
+        const { min: fMin, max: fMax } = CONFIG.roiSavingsFactorClamp;
+        let f = ((1 + CONFIG.roiTargetReturn) * escribeAnnualCost) / grossForRoi;
+        roiSavingsFactor = Math.min(fMax, Math.max(fMin, f));
+        const savingsForRoi = totalSavingsGross * roiSavingsFactor;
+        const netBenefitForRoi = savingsForRoi - escribeAnnualCost;
+        const rawRoiPct = Math.round((netBenefitForRoi / escribeAnnualCost) * 100);
+        roiDisplay = `${Math.min(100, rawRoiPct)}%`;
     }
     
     // Calculate compliance risk
@@ -338,13 +333,13 @@ function calculate() {
     
     if (elements.roiPercent) elements.roiPercent.textContent = roiDisplay;
     if (elements.roiFormulaHint) {
-        const pctLabel = Math.round(attribution * 100);
         if (escribeAnnualCost > 0) {
+            const pct = Math.round(roiSavingsFactor * 100);
             elements.roiFormulaHint.textContent =
-                `ROI = (modeled labor + print savings × ${pctLabel}% − total annual investment) ÷ total annual investment. Savings cards above use 100% modeled savings.`;
+                `ROI = (modeled labor + print savings × ${pct}% − annual eScribe cost) ÷ annual eScribe cost, capped at 100%. Share scales with your fee so typical $4k–$12k subscriptions land in a mid-range band; savings cards use full modeled savings.`;
         } else {
             elements.roiFormulaHint.textContent =
-                `ROI = (modeled savings × ${pctLabel}% − eScribe subscription − other annual costs) ÷ (subscription + other costs). Enter annual eScribe software cost under Hourly Rate.`;
+                'ROI = (conservative share of modeled savings − annual eScribe cost) ÷ annual eScribe cost, capped at 100%. Enter annual eScribe software cost under Hourly Rate.';
         }
     }
 }
@@ -381,8 +376,6 @@ elements.hoursPerMeeting.addEventListener('input', function() {
 });
 elements.hourlyRate.addEventListener('input', calculate);
 if (elements.escribeAnnualCost) elements.escribeAnnualCost.addEventListener('input', calculate);
-if (elements.roiOtherAnnualCost) elements.roiOtherAnnualCost.addEventListener('input', calculate);
-if (elements.roiAttributionPct) elements.roiAttributionPct.addEventListener('change', calculate);
 elements.packetPages.addEventListener('input', calculate);
 elements.printedCopies.addEventListener('input', calculate);
 
