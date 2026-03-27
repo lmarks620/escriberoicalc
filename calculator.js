@@ -83,8 +83,7 @@ const CONFIG = {
     // Risk with eScribe (significantly reduced)
     escribeRiskReduction: 0.80, // 80% risk reduction
 
-    roiTargetReturn: 0.52,
-    roiSavingsFactorClamp: { min: 0.35, max: 0.82 }
+    roiModeledSavingsFactor: 0.58
 };
 
 // DOM Elements
@@ -151,7 +150,6 @@ const elements = {
     
     // Time-based ROI % (percent of meeting prep time recovered)
     roiPercent: document.getElementById('roiPercent'),
-    roiFormulaHint: document.getElementById('roiFormulaHint'),
     roiContext: document.getElementById('roiContext')
 };
 
@@ -265,14 +263,9 @@ function calculate() {
     const currentAnnualPrepCost = annualBaseline + currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const totalSavingsGross = laborSavings + printSavings;
+    const savingsForRoi = totalSavingsGross * CONFIG.roiModeledSavingsFactor;
     let roiDisplay = '—';
-    let roiSavingsFactor = 0;
     if (escribeAnnualCost > 0) {
-        const grossForRoi = Math.max(1, totalSavingsGross);
-        const { min: fMin, max: fMax } = CONFIG.roiSavingsFactorClamp;
-        let f = ((1 + CONFIG.roiTargetReturn) * escribeAnnualCost) / grossForRoi;
-        roiSavingsFactor = Math.min(fMax, Math.max(fMin, f));
-        const savingsForRoi = totalSavingsGross * roiSavingsFactor;
         const netBenefitForRoi = savingsForRoi - escribeAnnualCost;
         const rawRoiPct = Math.round((netBenefitForRoi / escribeAnnualCost) * 100);
         roiDisplay = `${Math.min(100, rawRoiPct)}%`;
@@ -332,16 +325,6 @@ function calculate() {
     elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
     
     if (elements.roiPercent) elements.roiPercent.textContent = roiDisplay;
-    if (elements.roiFormulaHint) {
-        if (escribeAnnualCost > 0) {
-            const pct = Math.round(roiSavingsFactor * 100);
-            elements.roiFormulaHint.textContent =
-                `ROI = (modeled labor + print savings × ${pct}% − annual eScribe cost) ÷ annual eScribe cost, capped at 100%. Share scales with your fee so typical $4k–$12k subscriptions land in a mid-range band; savings cards use full modeled savings.`;
-        } else {
-            elements.roiFormulaHint.textContent =
-                'ROI = (conservative share of modeled savings − annual eScribe cost) ÷ annual eScribe cost, capped at 100%. Enter annual eScribe software cost under Hourly Rate.';
-        }
-    }
 }
 
 // Update defaults when organization size changes
