@@ -94,6 +94,7 @@ const elements = {
     hoursPerMeeting: document.getElementById('hoursPerMeeting'),
     hoursPerMeetingValue: document.getElementById('hoursPerMeetingValue'),
     hourlyRate: document.getElementById('hourlyRate'),
+    escribeAnnualCost: document.getElementById('escribeAnnualCost'),
     packetPages: document.getElementById('packetPages'),
     printedCopies: document.getElementById('printedCopies'),
     
@@ -147,6 +148,7 @@ const elements = {
     
     // Time-based ROI % (percent of meeting prep time recovered)
     roiPercent: document.getElementById('roiPercent'),
+    roiFormulaHint: document.getElementById('roiFormulaHint'),
     roiContext: document.getElementById('roiContext')
 };
 
@@ -244,6 +246,8 @@ function calculate() {
     let hoursManual = parseInt(elements.hoursPerMeeting.value, 10);
     if (isNaN(hoursManual) || hoursManual < 0) hoursManual = 10;
     const hourlyRate = parseFloat(elements.hourlyRate.value) || 29;
+    const escribeCostRaw = parseFloat(String(elements.escribeAnnualCost && elements.escribeAnnualCost.value || '').replace(/,/g, ''), 10);
+    const escribeAnnualCost = (!isNaN(escribeCostRaw) && escribeCostRaw > 0) ? escribeCostRaw : 0;
     const pages = parseInt(elements.packetPages.value) || 150;
     const copies = parseInt(elements.printedCopies.value) || 15;
     
@@ -257,7 +261,13 @@ function calculate() {
     const annualBaseline = (CONFIG.baselineByOrgSize && CONFIG.baselineByOrgSize[orgSize]) || 12000;
     const currentAnnualPrepCost = annualBaseline + currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
-    const roiPercent = currentAnnualPrepCost > 0 ? Math.min(100, Math.round(((laborSavings + printSavings) / currentAnnualPrepCost) * 100)) : 0;
+    const totalSavingsGross = laborSavings + printSavings;
+    const netAfterEscribe = totalSavingsGross - escribeAnnualCost;
+    let roiDisplay = '—';
+    if (escribeAnnualCost > 0) {
+        const trueRoiPct = Math.round((netAfterEscribe / escribeAnnualCost) * 100);
+        roiDisplay = `${trueRoiPct}%`;
+    }
     
     // Calculate compliance risk
     const complianceLevel = getComplianceLevel();
@@ -278,7 +288,7 @@ function calculate() {
     const complianceSavings = annualRiskCostWithout - annualRiskCostWith;
     
     // Total savings and value
-    const totalSavings = laborSavings + printSavings;
+    const totalSavings = totalSavingsGross;
     const totalValue = totalSavings + complianceSavings;
     
     // Update display - Summary cards
@@ -312,7 +322,12 @@ function calculate() {
     // Update risk detail
     elements.avgSettlement.textContent = formatCurrency(currentRiskExposure);
     
-    if (elements.roiPercent) elements.roiPercent.textContent = roiPercent;
+    if (elements.roiPercent) elements.roiPercent.textContent = roiDisplay;
+    if (elements.roiFormulaHint) {
+        elements.roiFormulaHint.textContent = escribeAnnualCost > 0
+            ? 'True ROI = (labor + print savings − annual eScribe cost) ÷ annual eScribe cost.'
+            : 'True ROI = (labor + print savings − annual eScribe cost) ÷ annual eScribe cost. Enter software cost under Hourly Rate to calculate.';
+    }
 }
 
 // Update defaults when organization size changes
@@ -346,6 +361,7 @@ elements.hoursPerMeeting.addEventListener('input', function() {
     calculate();
 });
 elements.hourlyRate.addEventListener('input', calculate);
+if (elements.escribeAnnualCost) elements.escribeAnnualCost.addEventListener('input', calculate);
 elements.packetPages.addEventListener('input', calculate);
 elements.printedCopies.addEventListener('input', calculate);
 
