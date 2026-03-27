@@ -83,7 +83,6 @@ const CONFIG = {
     // Risk with eScribe (significantly reduced)
     escribeRiskReduction: 0.80, // 80% risk reduction
 
-    roiModeledSavingsFactor: 0.58
 };
 
 // DOM Elements
@@ -263,12 +262,12 @@ function calculate() {
     const currentAnnualPrepCost = annualBaseline + currentLaborCost + currentPrintCost;
     const timeSavingsPercent = hoursManual > 0 ? Math.round((hoursSavedPerMeeting / hoursManual) * 100) : 0;
     const totalSavingsGross = laborSavings + printSavings;
-    const savingsForRoi = totalSavingsGross * CONFIG.roiModeledSavingsFactor;
     let roiDisplay = '—';
     if (escribeAnnualCost > 0) {
-        const netBenefitForRoi = savingsForRoi - escribeAnnualCost;
-        const rawRoiPct = Math.round((netBenefitForRoi / escribeAnnualCost) * 100);
-        roiDisplay = `${Math.min(100, rawRoiPct)}%`;
+        const netBenefitForRoi = totalSavingsGross - escribeAnnualCost;
+        const denom = totalSavingsGross + escribeAnnualCost;
+        const roiPct = denom > 0 ? Math.round((netBenefitForRoi / denom) * 100) : 0;
+        roiDisplay = `${roiPct}%`;
     }
     
     // Calculate compliance risk
@@ -358,7 +357,12 @@ elements.hoursPerMeeting.addEventListener('input', function() {
     calculate();
 });
 elements.hourlyRate.addEventListener('input', calculate);
-if (elements.escribeAnnualCost) elements.escribeAnnualCost.addEventListener('input', calculate);
+if (elements.escribeAnnualCost) {
+    const esc = elements.escribeAnnualCost;
+    esc.addEventListener('input', calculate);
+    esc.addEventListener('change', calculate);
+    esc.addEventListener('blur', calculate);
+}
 elements.packetPages.addEventListener('input', calculate);
 elements.printedCopies.addEventListener('input', calculate);
 
