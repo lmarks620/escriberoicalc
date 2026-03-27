@@ -21,7 +21,7 @@ const CONFIG = {
         small: {
             committee: 15,
             council: 12,
-            staff: 2,
+            staff: 10,
             hours: 8,
             rate: 29,
             pages: 100,
@@ -30,7 +30,7 @@ const CONFIG = {
         medium: {
             committee: 24,
             council: 12,
-            staff: 3,
+            staff: 20,
             hours: 10,
             rate: 29,
             pages: 150,
@@ -39,7 +39,7 @@ const CONFIG = {
         large: {
             committee: 36,
             council: 12,
-            staff: 4,
+            staff: 35,
             hours: 12,
             rate: 29,
             pages: 175,
@@ -48,7 +48,7 @@ const CONFIG = {
         major: {
             committee: 60,
             council: 12,
-            staff: 5,
+            staff: 50,
             hours: 14,
             rate: 29,
             pages: 200,

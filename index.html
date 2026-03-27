@@ -69,13 +69,14 @@
                     <label for="staffCount">Staff Involved in Meeting Prep
                         <span class="citation-icon">
                             <span class="citation-tooltip">
-                                <strong>State of the Clerk’s Office Survey</strong>
-                                <p class="tooltip-body"><strong>86%</strong> of respondents work in clerk’s offices with <strong>1–5 people</strong>.</p>
+                                <strong>Full meeting-prep team</strong>
+                                <p class="tooltip-body">Includes clerk’s office, department heads submitting staff reports, city/county manager, legal, finance, and IT/A-V support.</p>
                                 <a href="https://www.escribemeetings.com/resources/state-of-clerks-survey/" target="_blank" rel="noopener">View survey</a>
                             </span>
                         </span>
                     </label>
-                    <input type="number" id="staffCount" value="3" min="1" max="50">
+                    <input type="number" id="staffCount" value="20" min="1" max="100">
+                    <span class="input-hint">Everyone who touches meeting prep: clerks, dept heads, manager, legal, finance, IT.</span>
                 </div>
 
                 <!-- Hours Per Meeting -->
@@ -371,10 +372,10 @@ const CONFIG = {
     costPerPage: 0.07,
     baselineByOrgSize: { small: 12000, medium: 18000, large: 45000, major: 75000 },
     orgSizeDefaults: {
-        small: { committee: 15, council: 12, staff: 2, hours: 8, rate: 29, pages: 100, copies: 10 },
-        medium: { committee: 24, council: 12, staff: 3, hours: 10, rate: 29, pages: 150, copies: 15 },
-        large: { committee: 36, council: 12, staff: 4, hours: 12, rate: 29, pages: 175, copies: 20 },
-        major: { committee: 60, council: 12, staff: 5, hours: 14, rate: 29, pages: 200, copies: 25 }
+        small: { committee: 15, council: 12, staff: 10, hours: 8, rate: 29, pages: 100, copies: 10 },
+        medium: { committee: 24, council: 12, staff: 20, hours: 10, rate: 29, pages: 150, copies: 15 },
+        large: { committee: 36, council: 12, staff: 35, hours: 12, rate: 29, pages: 175, copies: 20 },
+        major: { committee: 60, council: 12, staff: 50, hours: 14, rate: 29, pages: 200, copies: 25 }
     },
     complianceRisk: {
         small: { high: { exposure: 50000, probability: 0.10 }, medium: { exposure: 30000, probability: 0.05 }, low: { exposure: 15000, probability: 0.02 } },
